@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz — Identifier les Zones de Résistance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #F5F0E8;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 3rem 1.25rem 5rem;
+    }
+    .container { width: 100%; max-width: 600px; }
+    .header { margin-bottom: 2rem; }
+    .badge {
+      display: inline-block;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(26,26,46,0.5);
+      background: rgba(26,26,46,0.06);
+      border: 1px solid rgba(26,26,46,0.12);
+      padding: 4px 12px; border-radius: 99px; margin-bottom: 14px;
+    }
+    .page-title {
+      font-family: 'EB Garamond', serif;
+      font-size: 38px; font-weight: 400;
+      color: #1a1a2e; line-height: 1.2; margin-bottom: 6px;
+    }
+    .page-subtitle { font-size: 14px; color: rgba(26,26,46,0.45); }
+    .divider { height: 1px; background: #ddd6ca; margin: 1.75rem 0; }
+    .progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .q-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(26,26,46,0.4); }
+    .score-live { font-size: 13px; font-weight: 500; color: rgba(26,26,46,0.45); }
+    .progress-bar-bg { height: 3px; background: #ddd6ca; border-radius: 99px; margin-bottom: 1.75rem; }
+    .progress-bar-fill { height: 3px; background: #1a1a2e; border-radius: 99px; transition: width 0.5s ease; }
+    .question-card { background: #ffffff; border: 1px solid #ddd6ca; border-radius: 4px; padding: 1.75rem; margin-bottom: 1rem; }
+    .question-num { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(26,26,46,0.3); margin-bottom: 10px; }
+    .question-text { font-family: 'EB Garamond', serif; font-size: 22px; font-weight: 400; color: #1a1a2e; line-height: 1.5; }
+    .options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+    .option-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 16px; border: 1px solid #ddd6ca; border-radius: 4px;
+      background: #ffffff; cursor: pointer; text-align: left;
+      font-size: 14px; font-family: 'Inter', sans-serif; color: #1a1a2e;
+      transition: all 0.15s; width: 100%;
+    }
+    .option-btn:hover:not(:disabled) { background: #f0ebe1; border-color: #b8b0a0; }
+    .option-letter {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1px solid #ddd6ca; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: rgba(26,26,46,0.35); flex-shrink: 0; transition: all 0.15s;
+    }
+    .option-btn.correct { border-color: #0F6E56; background: #E1F5EE; }
+    .option-btn.correct .option-letter { background: #0F6E56; color: white; border-color: #0F6E56; }
+    .option-btn.wrong { border-color: #993C1D; background: #FAECE7; }
+    .option-btn.wrong .option-letter { background: #993C1D; color: white; border-color: #993C1D; }
+    .option-btn.reveal { border-color: #0F6E56; background: #E1F5EE; opacity: 0.7; }
+    .option-btn.reveal .option-letter { background: #0F6E56; color: white; border-color: #0F6E56; }
+    .option-btn:disabled { cursor: default; }
+    .feedback { display: none; padding: 13px 16px; border-radius: 4px; font-size: 14px; font-style: italic; line-height: 1.6; margin-bottom: 1rem; }
+    .feedback.show { display: flex; gap: 10px; align-items: flex-start; }
+    .feedback.correct { background: #E1F5EE; color: #085041; border-left: 3px solid #0F6E56; }
+    .feedback.wrong { background: #FAECE7; color: #4A1B0C; border-left: 3px solid #993C1D; }
+    .nav-area { display: flex; justify-content: flex-end; }
+    .btn-next {
+      padding: 10px 28px; border-radius: 4px; background: #1a1a2e; color: white; border: none;
+      font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; letter-spacing: 0.04em;
+      cursor: pointer; display: none; transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-next:hover { opacity: 0.82; }
+    .btn-next:active { transform: scale(0.98); }
+    .results-wrap { display: none; }
+    .score-row {
+      display: flex; align-items: center; gap: 1.75rem;
+      background: #ffffff; border: 1px solid #ddd6ca; border-radius: 4px;
+      padding: 1.75rem; margin-bottom: 1.75rem;
+    }
+    .score-circle {
+      width: 88px; height: 88px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'EB Garamond', serif; font-size: 26px; font-weight: 400; flex-shrink: 0;
+    }
+    .score-text h2 { font-family: 'EB Garamond', serif; font-size: 24px; font-weight: 400; color: #1a1a2e; margin-bottom: 4px; }
+    .score-text p { font-size: 14px; color: rgba(26,26,46,0.5); line-height: 1.5; }
+    .review-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(26,26,46,0.3); margin-bottom: 1rem; }
+    .review-item { background: #ffffff; border: 1px solid #ddd6ca; border-radius: 4px; padding: 1rem 1.25rem; margin-bottom: 8px; }
+    .review-q { font-size: 14px; font-weight: 500; color: #1a1a2e; margin-bottom: 6px; display: flex; gap: 10px; align-items: flex-start; }
+    .review-answer { font-size: 13px; color: rgba(26,26,46,0.5); font-style: italic; display: flex; gap: 6px; }
+    .review-answer strong { color: rgba(26,26,46,0.7); font-style: normal; }
+    .tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; flex-shrink: 0; }
+    .tag-correct { background: #E1F5EE; color: #085041; border: 1px solid #9FE1CB; }
+    .tag-wrong { background: #FAECE7; color: #4A1B0C; border: 1px solid #F5C4B3; }
+    .btn-retry {
+      margin-top: 1.5rem; width: 100%; padding: 11px; border-radius: 4px;
+      border: 1px solid #c8c0b0; background: #fff; color: rgba(26,26,46,0.55);
+      font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
+      letter-spacing: 0.04em; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-retry:hover { background: #f0ebe1; color: #1a1a2e; }
+    @media (max-width: 480px) {
+      .page-title { font-size: 30px; }
+      .question-text { font-size: 19px; }
+      .score-row { flex-direction: column; text-align: center; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <div class="badge">Cours 9</div>
+      <h1 class="page-title">Identifier les Zones de Résistance</h1>
+      <p class="page-subtitle">5 questions pour valider vos connaissances</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div id="quizWrap">
+      <div class="progress-meta">
+        <span class="q-label" id="qCounter">Question 1 sur 5</span>
+        <span class="score-live" id="scoreLive">0 / 5</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar" style="width:20%"></div>
+      </div>
+      <div class="question-card">
+        <div class="question-num" id="questionNum">Question 1</div>
+        <div class="question-text" id="questionText"></div>
+      </div>
+      <div class="options" id="optionsWrap"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="nav-area">
+        <button class="btn-next" id="btnNext">Suivant →</button>
+      </div>
+    </div>
+
+    <div class="results-wrap" id="resultsWrap">
+      <div class="score-row">
+        <div class="score-circle" id="scoreCircle"></div>
+        <div class="score-text">
+          <h2 id="scoreMsg"></h2>
+          <p id="scoreDetail"></p>
+        </div>
+      </div>
+      <div class="review-label">Révision des réponses</div>
+      <div id="reviewList"></div>
+      <button class="btn-retry" onclick="restartQuiz()">↺ Recommencer le quiz</button>
+    </div>
+
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "Quels sont les 3 types de résistances présentés dans ce cours et quelle est la logique de chacun ?",
+        opts: [
+          "Haussières, baissières et neutres — selon la direction de la tendance en cours",
+          "Horizontales (anciens sommets), psychologiques (chiffres ronds) et dynamiques (moyennes mobiles en plafond)",
+          "Primaires, secondaires et tertiaires — selon le nombre de fois que le niveau a été testé",
+          "Techniques, fondamentales et volumétriques — selon la méthode d'analyse utilisée"
+        ],
+        correct: 1,
+        explanation: "Les 3 types : horizontales (anciens sommets que le prix n'a pas réussi à dépasser — gravés dans la mémoire collective), psychologiques (chiffres ronds comme 10$, 100$, 1000$ qui concentrent les ordres de milliers d'investisseurs) et dynamiques (moyennes mobiles 20, 50, 200 jours qui forment des plafonds mobiles, surtout puissants en tendance baissière)."
+      },
+      {
+        q: "Qu'est-ce que le principe de polarité (le « Flip ») et comment fonctionne-t-il concrètement ?",
+        opts: [
+          "La tendance du prix à osciller régulièrement entre support et résistance sans jamais franchir ces niveaux",
+          "Un support cassé à la baisse devient automatiquement une résistance future — les acheteurs piégés lors de la cassure deviennent les vendeurs qui alimentent le plafond au retour du prix",
+          "Une résistance franchie à la hausse se transforme en zone neutre sans signification technique",
+          "Le renversement de tendance qui se produit lorsqu'un titre atteint un sommet historique pour la troisième fois"
+        ],
+        correct: 1,
+        explanation: "Le Flip est la loi la plus puissante de l'analyse technique : le plancher d'hier est le plafond de demain. Exemple : un support à 50$ est cassé à la baisse. Les acheteurs piégés lors de cette cassure ont maintenant une perte à 50$. Quand le prix y revient, ils vendent massivement pour récupérer leur mise — transformant mécaniquement ce niveau en résistance."
+      },
+      {
+        q: "Comment le nombre de tests d'une résistance influence-t-il sa fiabilité selon le cours ?",
+        opts: [
+          "Plus une résistance est testée, plus elle s'affaiblit et plus la probabilité de cassure augmente immédiatement",
+          "Le nombre de tests n'a aucune influence — seul le volume au moment du test compte",
+          "1–2 tests = résistance potentielle ; 3–4 tests = résistance confirmée ; 5+ tests = zone critique où la rupture devient imminente car la pression d'acheteurs frustrés s'accumule",
+          "Une résistance ne devient fiable qu'après exactement 3 tests, ni plus ni moins"
+        ],
+        correct: 2,
+        explanation: "Chaque test supplémentaire renforce la crédibilité de la résistance — mais accumule aussi une pression d'acheteurs frustrés qui tentent de passer. À 1–2 tests : résistance potentielle. À 3–4 tests : résistance confirmée. À 5+ tests : zone critique — la résistance s'est épaissie mais la pression accumulée la rend vulnérable à une rupture imminente."
+      },
+      {
+        q: "Que signifie observer un pic de volume élevé suivi d'un rejet au niveau d'une résistance ?",
+        opts: [
+          "Les acheteurs dominent et une cassure haussière est imminente — signal d'achat fort",
+          "Le volume confirme une bataille intense où les vendeurs ont dominé — la résistance est très solide",
+          "Le volume élevé indique une manipulation institutionnelle destinée à faire monter le prix artificiellement",
+          "Le rejet est temporaire et le prix reviendra tester le niveau dans les 48 heures suivantes"
+        ],
+        correct: 1,
+        explanation: "Volume élevé + rejet = les vendeurs ont absorbé toute la pression acheteuse avec conviction. C'est la preuve d'une bataille réelle où les vendeurs ont clairement dominé — la résistance est très solide. À l'inverse, volume faible + test = signal ambigu (manque de conviction des deux côtés). Volume explosif + cassure = la résistance cède sous la pression."
+      },
+      {
+        q: "Quels sont les deux critères qui permettent de distinguer une vraie cassure d'une fausse cassure ?",
+        opts: [
+          "Le prix doit franchir la résistance pendant les heures d'ouverture et le volume doit tripler par rapport à la veille",
+          "La clôture de bougie au-dessus de la résistance ET un retest réussi du niveau en support après la cassure",
+          "Deux bougies consécutives qui clôturent au-dessus de la résistance, sans condition sur le volume",
+          "Une annonce fondamentale positive publiée le même jour que le franchissement du niveau"
+        ],
+        correct: 1,
+        explanation: "Une vraie cassure exige deux confirmations : d'abord une clôture de bougie au-dessus de la résistance (pas seulement un perçage intraday), puis un retest réussi du niveau en support — le prix revient tester l'ancienne résistance qui agit maintenant comme support (principe de polarité). Sans ces deux confirmations, le franchissement est un piège à acheteurs."
+      }
+    ];
+
+    let current = 0, score = 0, userAnswers = [];
+    const letters = ['A','B','C','D'];
+
+    function renderQuestion() {
+      const q = questions[current];
+      document.getElementById('progressBar').style.width = ((current+1)/questions.length*100)+'%';
+      document.getElementById('qCounter').textContent = `Question ${current+1} sur ${questions.length}`;
+      document.getElementById('scoreLive').textContent = `${score} / ${questions.length}`;
+      document.getElementById('questionNum').textContent = `Question ${current+1}`;
+      document.getElementById('questionText').textContent = q.q;
+
+      const wrap = document.getElementById('optionsWrap');
+      wrap.innerHTML = '';
+      q.opts.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
+        btn.onclick = () => selectAnswer(i, btn);
+        wrap.appendChild(btn);
+      });
+
+      document.getElementById('feedback').className = 'feedback';
+      document.getElementById('feedback').innerHTML = '';
+      document.getElementById('btnNext').style.display = 'none';
+    }
+
+    function selectAnswer(idx, btn) {
+      const q = questions[current];
+      const btns = document.querySelectorAll('.option-btn');
+      btns.forEach(b => b.disabled = true);
+      userAnswers.push(idx);
+
+      const fb = document.getElementById('feedback');
+      if (idx === q.correct) {
+        score++;
+        btn.classList.add('correct');
+        fb.className = 'feedback correct show';
+        fb.innerHTML = `<span>✓</span><span>${q.explanation}</span>`;
+      } else {
+        btn.classList.add('wrong');
+        btns[q.correct].classList.add('reveal');
+        fb.className = 'feedback wrong show';
+        fb.innerHTML = `<span>✗</span><span>Incorrect. ${q.explanation}</span>`;
+      }
+
+      document.getElementById('scoreLive').textContent = `${score} / ${questions.length}`;
+      const nextBtn = document.getElementById('btnNext');
+      nextBtn.style.display = 'block';
+      nextBtn.textContent = current < questions.length - 1 ? 'Suivant →' : 'Voir mes résultats →';
+    }
+
+    document.getElementById('btnNext').onclick = () => {
+      current++;
+      if (current < questions.length) renderQuestion();
+      else showResults();
+    };
+
+    function showResults() {
+      document.getElementById('quizWrap').style.display = 'none';
+      document.getElementById('resultsWrap').style.display = 'block';
+
+      const pct = Math.round(score / questions.length * 100);
+      const circle = document.getElementById('scoreCircle');
+      circle.textContent = `${score} / ${questions.length}`;
+
+      if (pct >= 80) {
+        circle.style.cssText = 'background:#E1F5EE;color:#085041;border:1px solid #9FE1CB;width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"EB Garamond",serif;font-size:26px;flex-shrink:0';
+        document.getElementById('scoreMsg').textContent = 'Excellent travail !';
+        document.getElementById('scoreDetail').textContent = 'Vous identifiez les plafonds du marché avec précision. Passez au cours suivant.';
+      } else if (pct >= 60) {
+        circle.style.cssText = 'background:#FAEEDA;color:#633806;border:1px solid #FAC775;width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"EB Garamond",serif;font-size:26px;flex-shrink:0';
+        document.getElementById('scoreMsg').textContent = 'Bon résultat !';
+        document.getElementById('scoreDetail').textContent = 'Revoyez le principe de polarité et la validation par le volume.';
+      } else {
+        circle.style.cssText = 'background:#FAECE7;color:#4A1B0C;border:1px solid #F5C4B3;width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"EB Garamond",serif;font-size:26px;flex-shrink:0';
+        document.getElementById('scoreMsg').textContent = 'À retravailler';
+        document.getElementById('scoreDetail').textContent = 'Relisez le cours sur les zones de résistance avant de continuer.';
+      }
+
+      const list = document.getElementById('reviewList');
+      list.innerHTML = '';
+      questions.forEach((q, i) => {
+        const ok = userAnswers[i] === q.correct;
+        const div = document.createElement('div');
+        div.className = 'review-item';
+        div.innerHTML = `
+          <div class="review-q">
+            <span class="tag ${ok ? 'tag-correct' : 'tag-wrong'}">${ok ? '✓' : '✗'}</span>
+            <span>${q.q}</span>
+          </div>
+          <div class="review-answer">
+            <span>→</span>
+            <span>Bonne réponse : <strong>${q.opts[q.correct]}</strong></span>
+          </div>`;
+        list.appendChild(div);
+      });
+    }
+
+    function restartQuiz() {
+      current = 0; score = 0; userAnswers = [];
+      document.getElementById('quizWrap').style.display = 'block';
+      document.getElementById('resultsWrap').style.display = 'none';
+      renderQuestion();
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>
